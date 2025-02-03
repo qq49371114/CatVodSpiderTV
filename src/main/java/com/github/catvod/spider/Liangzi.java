@@ -9,6 +9,8 @@ import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import io.github.pixee.security.HostValidator;
+import io.github.pixee.security.Urls;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -221,7 +223,7 @@ public class Liangzi extends Spider {
             String videoContent = OkHttp.string(realUrl, getHeader());
             Matcher mainMatcher = Pattern.compile("var main = \"(.*?)\";").matcher(videoContent);
             String mainUrl = mainMatcher.find() ? mainMatcher.group(1) : "";
-            realUrl= URLUtil.getHost(new URL(realUrl)).toString()+mainUrl;
+            realUrl= URLUtil.getHost(Urls.create(realUrl, Urls.HTTP_PROTOCOLS, HostValidator.DENY_COMMON_INFRASTRUCTURE_TARGETS)).toString()+mainUrl;
         }
         return Result.get().url(realUrl).header(getHeader()).string();
     }

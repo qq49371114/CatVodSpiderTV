@@ -8,6 +8,8 @@ import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Utils;
+import io.github.pixee.security.HostValidator;
+import io.github.pixee.security.Urls;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.util.TextUtils;
@@ -165,8 +167,8 @@ public class Supjav extends Spider {
     }
 
     private String parseTV(String redirect) throws MalformedURLException {
-        String data = OkHttp.string(redirect, getTVVideoHeaders(URLUtil.getHost(new URL(redirect)).toString()));
-        return Result.get().url(Utils.getVar(data, "urlPlay")).header(getTVVideoHeaders(URLUtil.getHost(new URL(redirect)).toString())).string();
+        String data = OkHttp.string(redirect, getTVVideoHeaders(URLUtil.getHost(Urls.create(redirect, Urls.HTTP_PROTOCOLS, HostValidator.DENY_COMMON_INFRASTRUCTURE_TARGETS)).toString()));
+        return Result.get().url(Utils.getVar(data, "urlPlay")).header(getTVVideoHeaders(URLUtil.getHost(Urls.create(redirect, Urls.HTTP_PROTOCOLS, HostValidator.DENY_COMMON_INFRASTRUCTURE_TARGETS)).toString())).string();
     }
 
     private String parseST(String redirect) throws IOException {
