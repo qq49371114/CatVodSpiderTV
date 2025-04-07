@@ -6,7 +6,7 @@ import com.github.catvod.bean.Result;
 import com.github.catvod.bean.Vod;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
-import com.github.catvod.utils.Utils;
+import com.github.catvod.utils.Util;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 public class DaGongRen extends Spider {
 
-    private static final String siteUrl = "https://dagongren1.com";
+    private static final String siteUrl = "https://dagongrenyy.com";
     private static final String cateUrl = siteUrl + "/list/";
     private static final String detailUrl = siteUrl + "/play/";
     private static final String playUrl = siteUrl + "/play/";
@@ -30,7 +30,7 @@ public class DaGongRen extends Spider {
 
     private HashMap<String, String> getHeaders() {
         HashMap<String, String> headers = new HashMap<>();
-        headers.put("User-Agent", Utils.CHROME);
+        headers.put("User-Agent", Util.CHROME);
         return headers;
     }
 
@@ -43,7 +43,7 @@ public class DaGongRen extends Spider {
         for (int i = 0; i < typeNameList.length; i++) {
             classes.add(new Class(typeIdList[i], typeNameList[i]));
         }
-        Document doc = Jsoup.parse(OkHttp.string(siteUrl, getHeaders()));
+        Document doc = Jsoup.parse(OkHttp.string(siteUrl, Util.webHeaders("")));
         for (Element element : doc.select("a.vodlist_thumb")) {
             try {
                 String pic = element.attr("data-original");

@@ -1,10 +1,10 @@
 package com.github.catvod.utils;
 
+import cn.hutool.core.util.URLUtil;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.spider.Init;
 import com.github.catvod.spider.Proxy;
-import io.ktor.http.ContentType;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
@@ -24,8 +24,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Utils {
-
+public class Util {
+    public static final String patternAli = "(https:\\/\\/www\\.aliyundrive\\.com\\/s\\/[^\"]+|https:\\/\\/www\\.alipan\\.com\\/s\\/[^\"]+)";
+    public static final String patternQuark = "(https:\\/\\/pan\\.quark\\.cn\\/s\\/[^\"]+)";
+    public static final String patternUC = "(https:\\/\\/drive\\.uc\\.cn\\/s\\/[^\"]+)";
     public static final Pattern RULE = Pattern.compile("http((?!http).){12,}?\\.(m3u8|mp4|flv|avi|mkv|rm|wmv|mpg|m4a|mp3)\\?.*|http((?!http).){12,}\\.(m3u8|mp4|flv|avi|mkv|rm|wmv|mpg|m4a|mp3)|http((?!http).)*?video/tos*");
     public static final String CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36";
     public static final String SAFARI = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.33";
@@ -53,6 +55,19 @@ public class Utils {
         if (url.contains("url=http") || url.contains(".js") || url.contains(".css") || url.contains(".html"))
             return false;
         return RULE.matcher(url).find();
+    }
+
+    public static String findByRegex(String regex, String content, Integer groupCount) {
+        // 创建 Pattern 对象
+        Pattern r = Pattern.compile(regex);
+
+        // 现在创建 matcher 对象
+        Matcher m = r.matcher(content);
+        if (m.find()) {
+            return m.group(groupCount);
+        } else {
+            return "";
+        }
     }
 
     public static byte[] toUtf8(byte[] bytes) {
@@ -230,7 +245,7 @@ public class Utils {
     }
 
     public static void notify(String msg) {
-        Init.execute(()->{
+        Init.execute(() -> {
             try {
                 postHttpMsg(msg);
             } catch (IOException e) {
@@ -271,7 +286,7 @@ public class Utils {
         JLabel jLabel = new JLabel(msg);
         jLabel.setBounds(0, 0, width, height);
         jLabel.setVerticalAlignment(SwingConstants.CENTER);
-        jLabel.setIcon(new ImageIcon(Utils.class.getResource("/TV-icon_1_s.png")));
+        jLabel.setIcon(new ImageIcon(Util.class.getResource("/TV-icon_1_s.png")));
         jLabel.setFont(jLabel.getFont().deriveFont(Float.valueOf(Swings.dp2px(25))));
         jLabel.setForeground(Color.white);
         jPanel.add(jLabel);
@@ -344,35 +359,61 @@ public class Utils {
 
     /**
      * @param referer
-     * @param cookie 多个cookie name=value;name2=value2
+     * @param cookie  多个cookie name=value;name2=value2
      * @return
      */
-    public static HashMap<String, String> webHeaders(String referer, String cookie){
-        HashMap<String, String> map = webHeaders(referer);
-        map.put(com.google.common.net.HttpHeaders.COOKIE, cookie);
-        return map;
+    public static HashMap<String, String> webHeaders(String referer, String cookie) {
+        return webHeaders(referer, "", cookie);
     }
 
     public static HashMap<String, String> webHeaders(String referer) {
-        if (webHttpHeaderMap == null || webHttpHeaderMap.isEmpty()) {
-            synchronized (Utils.class) {
-                if (webHttpHeaderMap == null || webHttpHeaderMap.isEmpty()) {
-                    webHttpHeaderMap = new HashMap<>();
-                    webHttpHeaderMap.put(HttpHeaders.CONTENT_TYPE, ContentType.Application.INSTANCE.getJson().getContentType());
-                    webHttpHeaderMap.put(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2");
-                    webHttpHeaderMap.put(HttpHeaders.CONNECTION, "keep-alive");
-                    webHttpHeaderMap.put(HttpHeaders.USER_AGENT, CHROME);
-                    webHttpHeaderMap.put(HttpHeaders.ACCEPT, "*/*");
-                }
-            }
+        return webHeaders(referer, "");
+    }
+
+    public static HashMap<String, String> webHeaders(String referer, String url, String cookie) {
+        webHttpHeaderMap = new HashMap<>();
+//                    webHttpHeaderMap.put(HttpHeaders.CONTENT_TYPE, ContentType.Application.INSTANCE.getJson().getContentType());
+        webHttpHeaderMap.put(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2");
+        webHttpHeaderMap.put(HttpHeaders.CONNECTION, "keep-alive");
+        webHttpHeaderMap.put(HttpHeaders.USER_AGENT, CHROME);
+        webHttpHeaderMap.put(HttpHeaders.ACCEPT, "*/*");
+//        webHttpHeaderMap.put(HttpHeaders.ACCEPT_ENCODING, "br, deflate, gzip, x-gzip");
+        if (StringUtils.isNotBlank(referer)) {
+            webHttpHeaderMap.put(HttpHeaders.REFERER, referer);
         }
-        URI uri = URI.create(referer);
-        String u = uri.getScheme() + "://" + uri.getHost();
-        webHttpHeaderMap.put(HttpHeaders.REFERER, u);
-        webHttpHeaderMap.put(io.ktor.http.HttpHeaders.INSTANCE.getOrigin(), u);
+        if (StringUtils.isNotBlank(url)) {
+            URI host = URLUtil.getHost(URLUtil.url(url));
+            webHttpHeaderMap.put(HttpHeaders.HOST, host.getHost());
+        }
+        if (StringUtils.isNotBlank(cookie)) {
+            webHttpHeaderMap.put(com.google.common.net.HttpHeaders.COOKIE, cookie);
+        }
+
+//        webHttpHeaderMap.put(io.ktor.http.HttpHeaders.INSTANCE.getOrigin(), u);
         return webHttpHeaderMap;
     }
 
+//    public static HashMap<String, String> webHeaders(String referer) {
+//        if (webHttpHeaderMap == null || webHttpHeaderMap.isEmpty()) {
+//            synchronized (Util.class) {
+//                if (webHttpHeaderMap == null || webHttpHeaderMap.isEmpty()) {
+//                    webHttpHeaderMap = new HashMap<>();
+////                    webHttpHeaderMap.put(HttpHeaders.CONTENT_TYPE, ContentType.Application.INSTANCE.getJson().getContentType());
+//                    webHttpHeaderMap.put(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2");
+//                    webHttpHeaderMap.put(HttpHeaders.CONNECTION, "keep-alive");
+//                    webHttpHeaderMap.put(HttpHeaders.USER_AGENT, CHROME);
+//                    webHttpHeaderMap.put(HttpHeaders.ACCEPT, "*/*");
+//                    webHttpHeaderMap.put(HttpHeaders.HOST, )
+//                }
+//            }
+//        }
+//        URI uri = URI.create(referer);
+//        String u = uri.getScheme() + "://" + uri.getHost();
+//        webHttpHeaderMap.put(HttpHeaders.REFERER, u);
+
+    /// /        webHttpHeaderMap.put(io.ktor.http.HttpHeaders.INSTANCE.getOrigin(), u);
+//        return webHttpHeaderMap;
+//    }
     public static String timestampToDateStr(Long timestamp) {
         return DateUtils.formatDate(new Date(timestamp));
     }
@@ -381,8 +422,91 @@ public class Utils {
         return new String(Base64.getEncoder().encode(str.getBytes()));
     }
 
+    public static String base64Encode(byte[] str) {
+        return new String(Base64.getEncoder().encode(str));
+    }
+
     public static String base64Decode(String str) {
-        if(StringUtils.isBlank(str)) return "";
+        if (StringUtils.isBlank(str)) return "";
         return new String(Base64.getDecoder().decode(str));
     }
+
+    public static String stringJoin(String separate, Collection<String> list) {
+        return StringUtils.join(list, separate);
+    }
+
+    public static String stringJoin(Collection<String> list, String separate) {
+        return StringUtils.join(list, separate);
+    }
+
+    /**
+     * 字符串相似度匹配
+     *
+     * @returns
+     */
+
+    public static LCSResult lcs(String str1, String str2) {
+        if (str1 == null || str2 == null) {
+            return new LCSResult(0, "", 0);
+        }
+
+        StringBuilder sequence = new StringBuilder();
+        int str1Length = str1.length();
+        int str2Length = str2.length();
+        int[][] num = new int[str1Length][str2Length];
+        int maxlen = 0;
+        int lastSubsBegin = 0;
+
+        for (int i = 0; i < str1Length; i++) {
+            for (int j = 0; j < str2Length; j++) {
+                if (str1.charAt(i) != str2.charAt(j)) {
+                    num[i][j] = 0;
+                } else {
+                    if (i == 0 || j == 0) {
+                        num[i][j] = 1;
+                    } else {
+                        num[i][j] = 1 + num[i - 1][j - 1];
+                    }
+
+                    if (num[i][j] > maxlen) {
+                        maxlen = num[i][j];
+                        int thisSubsBegin = i - num[i][j] + 1;
+                        if (lastSubsBegin == thisSubsBegin) {
+                            // if the current LCS is the same as the last time this block ran
+                            sequence.append(str1.charAt(i));
+                        } else {
+                            // this block resets the string builder if a different LCS is found
+                            lastSubsBegin = thisSubsBegin;
+                            sequence.setLength(0); // clear it
+                            sequence.append(str1.substring(lastSubsBegin, i + 1));
+                        }
+                    }
+                }
+            }
+        }
+        return new LCSResult(maxlen, sequence.toString(), lastSubsBegin);
+    }
+
+    public static class LCSResult {
+        public int length;
+        public String sequence;
+        public int offset;
+
+        public LCSResult(int length, String sequence, int offset) {
+            this.length = length;
+            this.sequence = sequence;
+            this.offset = offset;
+        }
+    }
+
+    public static Integer findAllIndexes(List<String> arr, String value) {
+
+        for (int i = 0; i < arr.size(); i++) {
+            if (arr.get(i).equals(value)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
 }

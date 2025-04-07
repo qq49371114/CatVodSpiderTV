@@ -1,12 +1,10 @@
-import com.github.catvod.spider.QxiTv
+import com.github.catvod.spider.HkTv
 import common.AssertUtil
 import common.TestInterface
 import org.junit.jupiter.api.Test
 
-class QxiTVTest : TestInterface<QxiTv> {
-    override var t: QxiTv
-        get() = QxiTv().apply { init() }
-        set(value) {}
+class HkTvTest: TestInterface<HkTv> {
+    override var t: HkTv = HkTv().apply { init() }
 
     @Test
     override fun homeTest() {
@@ -15,23 +13,24 @@ class QxiTVTest : TestInterface<QxiTv> {
         AssertUtil.assertResult(homeContent)
     }
 
+
     @Test
     override fun cateTest() {
-        val categoryContent = t.categoryContent("2", "1", false, hashMapOf())
+        val categoryContent = t.categoryContent("1", "1", true, hashMapOf())
         println(categoryContent)
         AssertUtil.assertResult(categoryContent)
     }
 
     @Test
     override fun detailTest() {
-        val detailContent = t.detailContent(listOf("/voddetail/867734/"))
+        val detailContent = t.detailContent(mutableListOf("191567.html"))
         println(detailContent)
         AssertUtil.assertResult(detailContent)
     }
 
     @Test
     override fun playTest() {
-        val playerContent = t.playerContent("", "/vodplay/867734-1-1/", listOf())
+        val playerContent = t.playerContent("", "191567/sid/1/nid/4.html", listOf())
         println(playerContent)
         AssertUtil.assertResult(playerContent)
     }
@@ -42,5 +41,4 @@ class QxiTVTest : TestInterface<QxiTv> {
         println(searchContent)
         AssertUtil.assertResult(searchContent)
     }
-
 }
