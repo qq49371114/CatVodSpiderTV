@@ -10,6 +10,7 @@ import com.github.catvod.utils.Util;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.pixee.security.SystemCommand;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -126,7 +127,7 @@ public class Test {
 //        Object[] objects = aliYun.proxyVideo(maps);
         String s = aliYun.getShareDownloadUrl("yJcwweiN61T", "656edff2c63533be753d4d90b5aac9f14495c882");
         System.out.println(s);
-        Runtime.getRuntime().exec("\"E:\\Program File\\Tools\\Scoop\\apps\\potplayer\\current\\PotPlayerMini64.exe\"", new String[]{s});
+        SystemCommand.runCommand(Runtime.getRuntime(), "\"E:\\Program File\\Tools\\Scoop\\apps\\potplayer\\current\\PotPlayerMini64.exe\"", new String[]{s});
         try {
             Thread.sleep(50000);
         } catch (InterruptedException e) {
